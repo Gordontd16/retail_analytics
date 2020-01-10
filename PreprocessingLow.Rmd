@@ -1,0 +1,47 @@
+---
+title: "PreprocessingLow"
+output: html_notebook
+---
+
+## Load the packages 
+
+```{r}
+library(plyr)
+library(tidyverse)
+library(readxl)
+library(knitr)
+library(ggplot2)
+library(lubridate)
+library(arules)
+library(arulesViz)
+```
+
+## Data preprocessing and exploring
+```{r}
+retail <- read_excel('Clusterlow.xlsx')
+retail <- retail[complete.cases(retail), ]
+retail <- retail %>% mutate(Description = as.factor(Description))
+retail <- retail %>% mutate(Country = as.factor(Country))
+retail$Date <- as.Date(retail$InvoiceDate)
+retail$Time <- format(retail$InvoiceDate,"%H:%M:%S")
+retail$InvoiceNo <- as.numeric(as.character(retail$InvoiceNo))
+```
+## Association rules for online retailer
+```{r}
+retail_sorted <- retail[order(retail$CustomerID),]
+itemList <- plyr::ddply(retail,c("CustomerID","Date"), 
+                       function(df1)paste(df1$Description, 
+                       collapse = ","))
+```
+
+```{r}
+itemList$CustomerID <- NULL
+itemList$Date <- NULL
+colnames(itemList) <- c("items")
+```
+
+```{r}
+write.csv(itemList,"market_basketlow.csv", quote = FALSE, row.names = TRUE)
+```
+
+

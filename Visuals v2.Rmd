@@ -1,0 +1,108 @@
+---
+title: "Visuals"
+output: html_notebook
+---
+
+## Load the packages 
+
+```{r}
+library(plyr)
+library(tidyverse)
+library(readxl)
+library(knitr)
+library(ggplot2)
+library(lubridate)
+library(arules)
+library(arulesViz)
+```
+
+## Association rules for online retailer
+```{r}
+trlow <- read.transactions('market_basketLow.csv', format = 'basket', sep=',')
+trmed <- read.transactions('market_basketMed.csv', format = 'basket', sep=',')
+trhigh <- read.transactions('market_basketHigh.csv', format = 'basket', sep=',')
+```
+```{r}
+summary(trlow)
+```
+```{r}
+summary(trmed)
+```
+
+```{r}
+summary(trhigh)
+```
+
+```{r}
+# Create an item frequency plot for the top 20 items
+if (!require("RColorBrewer")) {
+  # install color package of R
+install.packages("RColorBrewer")
+#include library RColorBrewer
+library(RColorBrewer)
+}
+itemFrequencyPlot(trlow,topN=20,type="relative",col=brewer.pal(8,'Pastel2'), cex.names=0.65)
+itemFrequencyPlot(trmed,topN=20,type="relative",col=brewer.pal(8,'Pastel2'), cex.names=0.65)
+itemFrequencyPlot(trhigh,topN=20,type="relative",col=brewer.pal(8,'Pastel2'), cex.names=0.65)
+
+```
+## Create some rules
+```{r}
+# Min Support as 0.001, confidence as 0.8.
+ruleslow <- apriori(trlow, parameter = list(supp=0.001, conf=0.8))
+rulesmed <- apriori(trmed, parameter = list(supp=0.001, conf=0.8))
+ruleshigh <- apriori(trhigh, parameter = list(supp=0.001, conf=0.8))
+```
+```{r}
+summary(ruleslow)
+summary(rulesmed)
+summary(ruleshigh)
+```
+
+```{r}
+plot(ruleslow)
+plot(rulesmed)
+plot(ruleshigh)
+```
+
+```{r}
+subruleslow <- ruleslow[quality(ruleslow)$confidence > 0.95]
+subruleslow
+subrulesmed <- rulesmed[quality(rulesmed)$confidence > 0.95]
+subrulesmed
+subruleshigh <- ruleshigh[quality(ruleshigh)$confidence > 0.95]
+subruleshigh
+```
+
+```{r}
+plot(subruleslow, method = "grouped", main='')
+```
+```{r}
+plot(subrulesmed, method = "grouped", main='')
+```
+
+```{r}
+plot(subruleshigh, method = "grouped", main='')
+```
+
+```{r}
+subrules2low <- head(ruleslow, n = 10, by = "lift")
+subrules2med <- head(rulesmed, n = 10, by = "lift")
+subrules2high <- head(ruleshigh, n = 10, by = "lift")
+```
+
+```{r}
+inspect(subrules2high)
+```
+
+```{r}
+plot(subrules2low, method = "graph")
+plot(subrules2med, method = "graph")
+plot(subrules2high, method = "graph")
+```
+
+```{r}
+plot(subrules2low, method="paracoord")
+plot(subrules2med, method="paracoord")
+plot(subrules2high, method="paracoord")
+```
